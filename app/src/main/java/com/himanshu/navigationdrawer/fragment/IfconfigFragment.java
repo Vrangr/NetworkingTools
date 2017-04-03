@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -86,7 +87,7 @@ public class IfconfigFragment extends Fragment {
 
         b.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View vpi) {
                 ipFind(v);
             }
         });
@@ -154,48 +155,39 @@ public class IfconfigFragment extends Fragment {
         }
         else
             state = 0;
+
+        TextView op = (TextView)v.findViewById(R.id.ifconfig_op);
+        Log.v("IfConfig o/p ", String.valueOf(op));
+        threadt t = new threadt(op,0,0,mActivity,state);
+        Thread tt = new Thread(t);
+        tt.start();
     }
-    TextView op = (TextView)v.findViewById(R.id.ifconfig_op);
-    //threadt t = new threadt();
+
 }
-//while ((s = br.readLine()) != null) {
-//        if (s.length() > 0 && s.contains("RX bytes")) {
-//        tracker.append("\n"+s);
-//        break;
-//        }
-//        else
-//        {
-//        tracker.append("\n" +s);
-//        }
-//
-//        }
 
 class threadt extends MainActivity implements Runnable
 {
     BufferedReader br;
     TextView tv;
-    String s,ss,retry,timeout;
+    String s,ss;
     StringBuilder sb;
     ProgressBar spinnerr;
     StringBuilder tracker;
     Activity mActivity;
-    int value;
+    int value,state;
     int flag =0,cancel=0;
 
     @Override
     public View findViewById(@IdRes int id) {
         return super.findViewById(id);
     }
-
-    public threadt(TextView tvv,String vss,int v,String r,String t,int ct,Activity ac)
+    public threadt(TextView tvv,int v,int ct,Activity ac,int stat)
     {
         tv = tvv;
-        ss = vss;
         value = v;
-        retry = r;
-        timeout = t;
         cancel = ct;
         mActivity = ac;
+        state = stat;
     }
 
     public void run()
@@ -204,62 +196,37 @@ class threadt extends MainActivity implements Runnable
         {
             sb = new StringBuilder();
             tracker = new StringBuilder();
-            String command = getCommand();
+            String command = getCommand(state);
 
-            System.out.println(command+ss);
+            System.out.println(command);
 
-            java.lang.Process pp = Runtime.getRuntime().exec(command+ss);
-            br = new BufferedReader(new InputStreamReader(pp.getInputStream()));
-
-            while ((s = br.readLine()) != null) {
-                if (s.length() > 0 && s.contains("avg")) {
-                    break;
-                }
-                else if(!s.contains("PING"))
-                {
-                    tracker.append("\n" +s);
-                }
-            }
-
-            if(s!=null)
+            if(command!=null && command.length()>0)
             {
-                System.out.println("Outside "+s+" "+s.length()+" Retry "+retry);
-                Matcher match = Pattern.compile(".*( ?)([0-9]+(\\.[0-9]+))(/?)([0-9]+(\\.[0-9]+))(/?)([0-9]+(\\.[0-9]+))(/?)([0-9]+(\\.[0-9]+)).*").matcher(s);
-                if (match.matches()) {
-                    Double minm = Double.parseDouble(match.group(2));
-                    Double avg = Double.parseDouble(match.group(5));
-                    Double max = Double.parseDouble(match.group(8));
+                java.lang.Process pp = Runtime.getRuntime().exec(command);
 
-                    System.out.println("Inside  "+minm+" "+" "+avg+" "+" "+max);
-
-                    if (value == 1) {
-                        sb.append("IPADDRESS OPTION : " + ss + ":\n Avg. Latency :" + avg / 2 + "ms");
-                        sb.append("\nMin. Latency :" + minm / 2 + "ms");
-                        sb.append("\nMax. Latency :" + max / 2 + "ms");
+                br = new BufferedReader(new InputStreamReader(pp.getInputStream()));
+                while ((s = br.readLine()) != null) {
+                    if (s.length() > 0 && s.contains("RX bytes")) {
+                        tracker.append("\n\n"+s);
+                        break;
                     }
-                    else {
-                        if(!ss.equals("0.0.0.0")) {
-                            flag = 1;
-                            sb.append("WIFI Latency : " + ss + ":\n Avg. Latency :" + avg / 2 + "ms");
-                            sb.append("\nMin. Latency :" + minm / 2 + "ms");
-                            sb.append("\nMax. Latency :" + max / 2 + "ms");
+                    else
+                    {
+                        tracker.append("\n\n" +s);
+                        if(s.contains("inet addr"))
+                        {
+                            ss = new String(s);
                         }
                     }
+
                 }
-            }
-            else {
-                if (value == 1)
-                    sb.append("IPADDRESS OPTION :\n" + ss + ": No Connection/Invalid Address");
-                else if(value == 3)
+
+                if(tracker.capacity()>0)
                 {
-                    if(!ss.equals("0.0.0.0")) {
-                        flag = 1;
-                    }
+                    value =1;
                 }
-                else
-                    sb.append("Some input fields are not filled.");
+
             }
-            //pp.destroy();
             System.out.println("end");
 
         } catch (IOException e)
@@ -298,26 +265,23 @@ class threadt extends MainActivity implements Runnable
     }
 
 
-    String getCommand()
+    String getCommand(int state)
     {
-        String command;
+        String command = "/system/bin/ifconfig ";
 
-        if(retry.equals("0.5"))
+        if(state==1)
         {
-            command = "/system/bin/ping -c 4 ";
+            command =command + "rmnet_data0";
+        }
+        else if(state==2)
+        {
+            command =command + "wlan0";
         }
         else
-        {
-            command = "/system/bin/ping -c "+retry+" ";
-        }
-        if(timeout.equals("0.1"))
-        {
-        }
-        else
-        {
-            command = command + "-w "+timeout +" ";
-        }
+            command = null;
+
         return command;
     }
+
 
 }
