@@ -12,6 +12,7 @@
         android:src="@drawable/ic_local_movies_black_24dp" />
         -->
     <LinearLayout
+
         android:id="@+id/head"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -36,6 +37,7 @@
             <EditText
                 android:id="@+id/first"
                 android:layout_width="0dp"
+
                 android:layout_height="50dp"
                 android:layout_marginLeft="2.5dp"
                 android:layout_marginRight="2.5dp"
@@ -90,10 +92,11 @@
                 android:layout_weight="1"
                 android:imeOptions="actionDone"
                 android:inputType="number"
-                android:textAlignment="center" />
+                android:textAlignment="center" />    
 
 
         </LinearLayout>
+
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -104,6 +107,7 @@
                 android:id="@+id/traceroute"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+
                 android:layout_centerHorizontal="true"
                 android:onClick="traceroute"
                 android:text="Perform TraceRoute"
