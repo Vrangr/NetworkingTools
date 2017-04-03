@@ -1,6 +1,7 @@
 package com.himanshu.navigationdrawer.activity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -29,7 +30,7 @@ import com.himanshu.navigationdrawer.fragment.WifiLatencyFragment;
 import com.himanshu.navigationdrawer.fragment.SettingsFragment;
 import com.himanshu.navigationdrawer.other.CircleTransform;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
 
     private NavigationView navigationView;
     private DrawerLayout drawer;
@@ -354,4 +355,5 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }

@@ -1,14 +1,34 @@
 package com.himanshu.navigationdrawer.fragment;
 
+import android.app.Activity;
 import android.content.Context;
+import android.net.DhcpInfo;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
+import android.text.format.Formatter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.himanshu.navigationdrawer.R;
+import com.himanshu.navigationdrawer.activity.MainActivity;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static android.R.string.cancel;
+import static android.content.Context.WIFI_SERVICE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -27,7 +47,15 @@ public class WifiLatencyFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
+    Activity mActivity;
+    View v;
+    ProgressBar spinner;
+    String retry,timeout;
+    TextView tv;
+    String ss,ss2;
+    EditText et,et1,et2,et3,ret,time;
+    Button n_check;
+    int value = 0,cancel=0;
     private OnFragmentInteractionListener mListener;
 
     public WifiLatencyFragment() {
@@ -65,7 +93,22 @@ public class WifiLatencyFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_wifi_latency, container, false);
+        v = inflater.inflate(R.layout.fragment_wifi_latency, container, false);
+        n_check = (Button) v.findViewById(R.id.check_button_latency);
+        tv          = (TextView) v.findViewById(R.id.output);
+        ret         = (EditText)v.findViewById(R.id.retry_et);
+        time        = (EditText)v.findViewById(R.id.time_out_et);
+        n_check     = (Button)v.findViewById(R.id.check_button_latency);
+        spinner     = (ProgressBar)v.findViewById(R.id.progressBar1);
+        Log.v("MainActivity: ", String.valueOf(getActivity()));
+        n_check.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                latency(v);
+            }
+        });
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -84,6 +127,7 @@ public class WifiLatencyFragment extends Fragment {
 //            throw new RuntimeException(context.toString()
 //                    + " must implement OnFragmentInteractionListener");
 //        }
+        mActivity = (Activity)context;
     }
 
     @Override
@@ -107,4 +151,68 @@ public class WifiLatencyFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
     /***************************************************************************************/
+    public void latency(View view) {
+
+
+        if (cancel == 0) {
+            new Thread() {
+                public void run() {
+
+                    mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            spinner.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
+            }.start();
+            final WifiManager manager = (WifiManager) mActivity.getApplicationContext().getSystemService(WIFI_SERVICE);
+            final DhcpInfo dhcp = manager.getDhcpInfo();
+            String sss = Formatter.formatIpAddress(dhcp.gateway);
+            value = 3;
+
+            retry = ret.getText().toString();
+            timeout = time.getText().toString();
+
+            if (retry == null || retry.equals("") || retry.length() == 0 || retry.equals("0")) {
+                retry = "0.5";
+            }
+            if (timeout == null || timeout.equals("") || timeout.length() == 0 || timeout.equals("0")) {
+                timeout = "0.1";
+            }
+            thread tt = new thread(tv, sss, spinner, value, retry, timeout,cancel,mActivity);
+            Thread t = new Thread(tt);
+            t.start();
+        }
+        else
+        {
+            new Thread() {
+                public void run() {
+
+                    mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            tv.setVisibility(View.VISIBLE);
+                            spinner.setVisibility(View.INVISIBLE);
+                            tv.setText("Cancelled");
+                            cancel =0;
+                        }
+                    });
+                }
+            }.start();
+        }
+    }
+
+    boolean empty(EditText tv) {
+        String string = tv.getText().toString().trim();
+        if(string.isEmpty() || string.length()==0 || string.equals("") || string==null)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
 }
