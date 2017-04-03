@@ -263,8 +263,6 @@ class threadt extends MainActivity implements Runnable
         });
 
     }
-
-
     String getCommand(int state)
     {
         String command = "/system/bin/ifconfig ";
@@ -282,6 +280,4 @@ class threadt extends MainActivity implements Runnable
 
         return command;
     }
-
-
 }
